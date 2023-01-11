@@ -1,11 +1,35 @@
+from sklearn.metrics import make_scorer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split, cross_val_score, KFold, RepeatedKFold, StratifiedKFold, StratifiedShuffleSplit
+from sklearn.metrics import classification_report, confusion_matrix, recall_score, make_scorer, f1_score, ConfusionMatrixDisplay
+from sklearn.metrics import recall_score
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram
 
-from sklearn.metrics import make_scorer
-from sklearn.metrics import recall_score
-from sklearn.metrics import classification_report, confusion_matrix, recall_score, make_scorer, f1_score, ConfusionMatrixDisplay
-from sklearn.model_selection import train_test_split, cross_val_score, KFold, RepeatedKFold, StratifiedKFold, StratifiedShuffleSplit
-from sklearn.neighbors import KNeighborsClassifier
+
+def plot_dendrogram(model, **kwargs):
+    # Create linkage matrix and then plot the dendrogram
+
+    # create the counts of samples under each node
+    counts = np.zeros(model.children_.shape[0])
+    n_samples = len(model.labels_)
+    for i, merge in enumerate(model.children_):
+        current_count = 0
+        for child_idx in merge:
+            if child_idx < n_samples:
+                current_count += 1  # leaf node
+            else:
+                current_count += counts[child_idx - n_samples]
+        counts[i] = current_count
+
+    linkage_matrix = np.column_stack(
+        [model.children_, model.distances_, counts]
+    ).astype(float)
+
+    # Plot the corresponding dendrogram
+    dendrogram(linkage_matrix, **kwargs)
+
 
 # Não existe "scorer" de specificity na biblioteca, pelo que se cria
 specificity = make_scorer(recall_score, pos_label=0)
