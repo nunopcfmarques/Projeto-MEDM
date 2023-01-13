@@ -35,55 +35,6 @@ def plot_dendrogram(model, **kwargs):
 specificity = make_scorer(recall_score, pos_label=0)
 
 
-def get_met(y_test, y_pred):
-    # Função auxiliar que dado o vetor real e o vetor previsto calcula as métricas
-    # Devolve as métricas
-
-    cm = confusion_matrix(y_test, y_pred)
-
-    TN, FP, FN, TP = cm.ravel()
-
-    N = TP + FN + FP + TN
-
-    acc = (TP + TN)/N
-
-    err = (FP + FN)/N
-
-    rec = TP/(TP + FN)
-
-    pre = TP/(TP + FP)
-
-    fpr = FP/(FP + TN)
-
-    spe = 1. - fpr
-
-    f1_score = (2. * pre * rec)/(pre + rec)
-
-    return [acc, err, rec, pre, fpr, spe, f1_score, cm]
-
-
-def fit(classifier, X_train, X_test, y_train, y_test):
-    # Função auxiliar que dado um classificador e o seu conjunto de treino e teste faz "fit"
-    # Devolve as métricas
-
-    clf = classifier.fit(X_train, y_train)
-
-    y_pred = clf.predict(X_test)
-
-    return get_met(y_test, y_pred)
-
-
-# (NOTA: define-se uma "seed" para o hold_out para resultados consistentes)
-def hold_out(X, y, test_size=0.20):
-    # Função auxiliar que dado X e y cria conjuntos treino e teste conforme uma partição aleatória dos dados.
-    # Devolve o conjunto de treino e teste
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=20)
-
-    return [X_train, X_test, y_train, y_test]
-
-
 def cv_fit(classifier, X, y, cv=10):
     # Função auxiliar que dado um classificador, X e y faz a "cross-validation" definida pelo argumento cv
     # Devolve as métricas
@@ -123,3 +74,31 @@ def plot_met(cm):
 
     plt.grid(False)
     plt.show()
+
+
+def bayes(classifier, X, y):
+
+    # NB com K Fold
+
+    print("NB com K Fold \n")
+
+    results = cv_fit(classifier, X, y)
+
+    print_met(results)
+
+    # NB com repeated K Fold
+
+    print("NB com Repeated K Fold \n")
+
+    results = cv_fit(classifier, X, y, cv=RepeatedKFold(
+        n_splits=5, n_repeats=10, random_state=20))
+
+    print_met(results)
+
+    # NB com Stratified K Fold
+
+    print("NB com Stratified K Fold \n")
+
+    results = cv_fit(classifier, X, y, cv=StratifiedKFold())
+
+    print_met(results)
